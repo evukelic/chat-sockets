@@ -13,7 +13,8 @@ webSocketServer.on("request", (request) => {
 
   connection.on("message", (message) => {
     console.log("Received message: ", message);
-    connection.send(message.utf8Data);
+
+    webSocketServer.broadcast(message.utf8Data);
   });
 
   connection.on("close", (reasonCode, description) => {});

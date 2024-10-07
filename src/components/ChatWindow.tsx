@@ -22,7 +22,7 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 interface Message {
   user: string;
@@ -35,6 +35,7 @@ export default function Component({ username }: any) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [webSocket, setWebSocket] = useState<any>(null);
+  const messagesEndRef = useRef<null | HTMLDivElement>(null);
 
   useEffect(() => {
     const socket = new WebSocket("ws://localhost:3001");
@@ -55,6 +56,12 @@ export default function Component({ username }: any) {
     return () => {
       socket.close();
     };
+  }, [messages]);
+
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages]);
 
   const handleSendMessage = (e: React.FormEvent) => {
@@ -141,53 +148,98 @@ export default function Component({ username }: any) {
                   </ListItem>
                 ) : (
                   <ListItem alignItems="flex-start" sx={{ py: 2 }}>
-                    <ListItemAvatar>
-                      <Badge
-                        overlap="circular"
-                        anchorOrigin={{
-                          vertical: "bottom",
-                          horizontal: "right",
-                        }}
-                        variant="dot"
-                        color={"primary"}
-                      >
-                        <Avatar alt={message.user} />
-                      </Badge>
-                    </ListItemAvatar>
-                    <ListItemText
-                      primary={
-                        <Typography
-                          component="span"
-                          variant="subtitle2"
-                          color="text.primary"
-                        >
-                          {message.user}
-                        </Typography>
+                    <Box
+                      sx={{ display: "flex", width: "100%" }}
+                      flexDirection={
+                        message.user === username ? "row-reverse" : "row"
                       }
-                      secondary={
-                        <React.Fragment>
+                      alignItems={
+                        message.user === username ? "flex-end" : "flex-start"
+                      }
+                    >
+                      {message.user !== username && (
+                        <ListItemAvatar>
+                          <Badge
+                            overlap="circular"
+                            anchorOrigin={{
+                              vertical: "bottom",
+                              horizontal: "right",
+                            }}
+                            variant="dot"
+                            color={"primary"}
+                          >
+                            <Avatar alt={message.user} />
+                          </Badge>
+                        </ListItemAvatar>
+                      )}
+
+                      <ListItemText
+                        primary={
                           <Typography
-                            sx={{ display: "inline", mr: 1 }}
+                            sx={{
+                              display: "block",
+                              textAlign:
+                                message.user === username ? "right" : "left",
+                            }}
                             component="span"
-                            variant="body2"
+                            variant="subtitle2"
                             color="text.primary"
                           >
-                            {message.text}
+                            {message.user}
                           </Typography>
-                          <Typography
-                            sx={{ display: "inline" }}
-                            component="span"
-                            variant="caption"
-                            color="text.secondary"
-                          >
-                            {message.timestamp}
-                          </Typography>
-                        </React.Fragment>
-                      }
-                    />
+                        }
+                        secondary={
+                          <React.Fragment>
+                            <Box
+                              sx={{
+                                display: "block",
+                                textAlign:
+                                  message.user === username ? "right" : "left",
+                                m: 1,
+                                mr: message.user === username ? 0 : 1,
+                                ml: message.user !== username ? 0 : 1,
+                              }}
+                            >
+                              <Typography
+                                sx={{
+                                  display: "inline",
+                                  textAlign:
+                                    message.user === username
+                                      ? "right"
+                                      : "left",
+                                  bgcolor:
+                                    message.user === username
+                                      ? "primary.light"
+                                      : "secondary.light",
+                                  p: 1,
+                                  borderRadius: 2,
+                                }}
+                                component="span"
+                                variant="body2"
+                                color="text.primary"
+                              >
+                                {message.text}
+                              </Typography>
+                            </Box>
+                            <Typography
+                              sx={{
+                                display: "block",
+                                textAlign:
+                                  message.user === username ? "right" : "left",
+                              }}
+                              component="span"
+                              variant="caption"
+                              color="text.secondary"
+                            >
+                              {message.timestamp}
+                            </Typography>
+                          </React.Fragment>
+                        }
+                      />
+                    </Box>
                   </ListItem>
                 )}
-
+                <div ref={messagesEndRef} />
                 {index < messages.length - 1 && (
                   <Divider variant="inset" component="li" />
                 )}
